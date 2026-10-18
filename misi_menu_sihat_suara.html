@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="ms">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Misi Menu Sihat — Suara Wira Sihat</title>
+<style>
+:root{--green:#247a52;--mint:#e2f8e9;--orange:#ffbd4a;--ink:#193b2c;--cream:#fffaf0;--red:#b63d32}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Trebuchet MS",Arial,sans-serif;background:linear-gradient(135deg,#e3f8e8,#fff2d2);color:var(--ink);min-height:100vh;display:flex;justify-content:center;align-items:center;padding:16px}
+.app{width:min(960px,100%);background:white;border:5px solid white;border-radius:28px;box-shadow:0 16px 40px #1c5a3920;overflow:hidden}
+header{background:linear-gradient(120deg,#247a52,#51b779);color:white;text-align:center;padding:23px 16px 20px}
+header .food{font-size:2rem;letter-spacing:8px}
+h1{margin:8px 0 5px;font-size:clamp(1.8rem,5vw,3rem)}
+header p{margin:0}
+main{padding:clamp(16px,4vw,32px)}
+.stats{display:flex;gap:10px;justify-content:space-between;flex-wrap:wrap;margin-bottom:18px}
+.stat{background:var(--mint);border-radius:14px;padding:10px 14px;font-weight:bold;flex:1;text-align:center;min-width:105px}
+.progress-wrap{height:11px;background:#e9eee9;border-radius:99px;overflow:hidden;margin-bottom:22px}
+.progress{height:100%;width:0;background:linear-gradient(90deg,#55c878,#ffcc55);transition:width .3s}
+.screen{text-align:center}.hero{font-size:4.7rem;margin:5px 0 10px}
+.intro{max-width:660px;margin:0 auto 20px;line-height:1.65;font-size:1.05rem}
+button{font:inherit;cursor:pointer;border:0;border-radius:14px;padding:12px 17px;font-weight:800;transition:transform .15s,filter .15s}
+button:hover{transform:translateY(-2px);filter:brightness(1.03)}button:focus-visible{outline:3px solid #2877d4;outline-offset:3px}
+.primary{background:var(--orange);color:#4c3100;box-shadow:0 4px 0 #dc9630}.secondary{background:#e9f5ed;color:#216744}.mic{background:#277b53;color:white}.mic.listening{background:#c33e37;animation:pulse 1s infinite}
+@keyframes pulse{50%{box-shadow:0 0 0 7px #c33e3725}}
+.tag{display:inline-block;background:#fff0c9;color:#855400;padding:7px 14px;border-radius:99px;font-weight:bold;margin-bottom:12px}
+.question{font-size:clamp(1.3rem,3.5vw,1.8rem);line-height:1.35;margin:8px auto 12px;max-width:720px}
+.speak-row{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;margin:0 auto 18px}
+.answers{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;max-width:740px;margin:0 auto}
+.answer{background:#f4f8f3;border:2px solid #dceade;color:#244c36;min-height:76px;text-align:left;display:flex;align-items:center;gap:12px;font-weight:700;line-height:1.3}
+.answer .emoji{font-size:2rem;flex-shrink:0}.answer:disabled{cursor:default;transform:none}
+.answer.correct{background:#d8f8e1;border-color:#32a65b;color:#155b30}.answer.wrong{background:#ffe2df;border-color:#e96c60;color:#8e2e25}
+.answer .letter{background:#fff;border-radius:9px;padding:5px 9px;color:#247a52}
+.voice-panel{margin:17px auto 0;max-width:740px;background:#f3f8f3;border:2px dashed #c6dfce;border-radius:16px;padding:13px}
+.voice-title{font-weight:900;margin-bottom:7px}.voice-help{font-size:.9rem;line-height:1.45;color:#4d6b5a}
+#heard{font-weight:bold;color:#214f36;min-height:24px;margin:8px 0}
+.feedback{min-height:48px;margin:14px auto 0;max-width:740px;padding:12px;border-radius:14px;font-weight:bold;line-height:1.4}
+.feedback:empty{padding:0;min-height:0}.feedback.good{background:#e0f8e7;color:#176036}.feedback.bad{background:#fff0e8;color:#93412d}.feedback.info{background:#e8f1ff;color:#234e82}
+.actions{margin-top:16px}.hidden{display:none!important}
+.result-stars{font-size:2.5rem;letter-spacing:4px;margin:10px}.result-score{font-size:2.2rem;font-weight:900;color:#247a52;margin:8px}
+footer{text-align:center;padding:0 16px 18px;color:#648071;font-size:.84rem}
+@media(max-width:560px){.answers{grid-template-columns:1fr}.answer{min-height:64px}.hero{font-size:3.8rem}main{padding:16px}.stat{min-width:90px;padding:9px 8px}}
+</style>
+</head>
+<body>
+<div class="app">
+<header><div class="food" aria-hidden="true">🥦 🍎 🥕</div><h1>🌟 MISI MENU SIHAT 🌟</h1><p>Dengar, Sebut dan Jadi Wira Sihat!</p></header>
+<main>
+<div class="stats">
+ <div class="stat">⭐ Skor: <span id="score">0</span></div>
+ <div class="stat">📝 Soalan: <span id="counter">0 / 10</span></div>
+ <div class="stat">🏆 Betul: <span id="correctCount">0</span></div>
+</div>
+<div class="progress-wrap" aria-label="Kemajuan kuiz"><div class="progress" id="progress"></div></div>
+<section id="startScreen" class="screen">
+ <div class="hero">🍱</div><h2>Hai, Wira Sihat!</h2>
+ <p class="intro">Selesaikan 10 misi tentang pemakanan sihat. Anda boleh <b>menekan pilihan jawapan</b> atau menekan butang <b>🎤 Jawab dengan Suara</b> dan menyebut jawapan. Tekan 🔊 untuk mendengar soalan dibacakan. Setiap jawapan betul mendapat <b>10 mata</b>.</p>
+ <p class="voice-help">🎧 Untuk fungsi mikrofon, benarkan akses mikrofon apabila diminta. Pengecaman suara paling sesuai dalam Google Chrome atau Microsoft Edge dengan sambungan internet.</p>
+ <button class="primary" id="startBtn">🚀 Mula Misi</button>
+</section>
+<section id="quizScreen" class="screen hidden" aria-live="polite">
+ <div class="tag" id="questionTag">MISI 1 DARIPADA 10</div>
+ <div class="question" id="questionText"></div>
+ <div class="speak-row">
+  <button id="speakQuestion" class="secondary">🔊 Dengar Soalan</button>
+  <button id="speakOptions" class="secondary">🗣️ Dengar Pilihan</button>
+ </div>
+ <div class="answers" id="answers"></div>
+ <div class="voice-panel">
+  <div class="voice-title">🎙️ Zon Jawapan Suara</div>
+  <div class="voice-help">Tekan mikrofon, kemudian sebut pilihan jawapan dengan jelas. Contoh: “Air kosong”. Anda juga boleh memilih jawapan melalui butang pilihan di atas.</div>
+  <button id="micBtn" class="mic">🎤 Jawab dengan Suara</button>
+  <div id="heard" aria-live="polite">Jawapan yang didengar akan muncul di sini.</div>
+  <div class="voice-help" id="speechStatus">Status mikrofon: belum digunakan.</div>
+ </div>
+ <div id="feedback" class="feedback" role="status"></div>
+ <div class="actions"><button id="nextBtn" class="primary hidden">Soalan Seterusnya ➜</button></div>
+</section>
+<section id="resultScreen" class="screen hidden">
+ <div class="hero" id="resultEmoji">🎉</div><h2 id="resultTitle">Misi Selesai!</h2>
+ <div class="result-stars" id="resultStars">⭐⭐⭐</div>
+ <div class="result-score"><span id="finalScore">0</span> / 100 mata</div>
+ <p class="intro" id="resultMessage"></p>
+ <button class="primary" id="restartBtn">🔄 Main Semula</button>
+ <button class="secondary" id="readResultBtn">🔊 Bacakan Keputusan</button>
+</section>
+</main>
+<footer>💚 Pilih makanan berkhasiat, minum air kosong dan bergerak aktif setiap hari!</footer>
+</div>
+<script>
+const questions=[
+{q:"Apakah minuman yang paling baik untuk menghilangkan dahaga setiap hari?",a:[["🥤","Minuman berkarbonat"],["💧","Air kosong"],["🧋","Minuman boba"],["🧃","Minuman manis"]],correct:1,why:"Air kosong membantu badan kekal terhidrat tanpa gula tambahan."},
+{q:"Makanan manakah sumber protein yang baik untuk tubuh?",a:[["🍗","Ayam"],["🍬","Gula-gula"],["🍭","Lolipop"],["🥤","Air berperisa"]],correct:0,why:"Ayam membekalkan protein yang membantu pertumbuhan dan pembaikan tisu badan."},
+{q:"Antara berikut, yang manakah buah-buahan?",a:[["🍟","Kentang goreng"],["🍎","Epal"],["🍕","Piza"],["🍪","Biskut"]],correct:1,why:"Epal ialah buah yang membekalkan serat, vitamin dan mineral."},
+{q:"Mengapakah kita perlu makan sayur-sayuran?",a:[["😴","Supaya tidak perlu bersenam"],["🍭","Supaya boleh makan gula-gula sahaja"],["🥦","Untuk mendapatkan serat, vitamin dan mineral"],["📺","Supaya boleh menonton TV lebih lama"]],correct:2,why:"Sayur-sayuran membekalkan serat, vitamin dan mineral yang penting untuk kesihatan."},
+{q:"Apakah pilihan sarapan yang lebih seimbang?",a:[["🍩","Donat dan minuman manis sahaja"],["🥚","Roti, telur dan buah"],["🍬","Gula-gula"],["🍟","Kentang goreng sahaja"]],correct:1,why:"Roti, telur dan buah memberikan gabungan tenaga, protein serta vitamin."},
+{q:"Apakah amalan yang baik sebelum makan?",a:[["🧼","Membasuh tangan dengan sabun"],["🏃","Berlari sambil makan"],["📱","Bermain telefon tanpa henti"],["🛏️","Terus tidur"]],correct:0,why:"Membasuh tangan dengan sabun membantu mengurangkan kuman."},
+{q:"Kita digalakkan mengambil makanan yang tinggi gula dengan…",a:[["🎂","Lebih banyak setiap hari"],["🚫","Sederhana dan tidak berlebihan"],["🍭","Setiap kali berasa bosan"],["🥤","Menggantikan semua makanan"]],correct:1,why:"Pengambilan gula yang berlebihan tidak baik untuk kesihatan gigi dan tubuh."},
+{q:"Aktiviti manakah membantu badan kekal cergas?",a:[["🛋️","Duduk sepanjang hari"],["🎮","Bermain permainan video sepanjang hari"],["🚴","Berbasikal atau bermain di luar"],["😴","Tidur sepanjang hari"]],correct:2,why:"Aktiviti fizikal seperti berbasikal membantu menguatkan badan dan meningkatkan kecergasan."},
+{q:"Apakah maksud menu yang seimbang?",a:[["🍟","Makan satu jenis makanan sahaja"],["🍰","Makan pencuci mulut sahaja"],["🥗","Menggabungkan pelbagai kumpulan makanan mengikut keperluan"],["🍬","Makan makanan manis sahaja"]],correct:2,why:"Menu seimbang mengandungi pelbagai kumpulan makanan dalam kuantiti yang sesuai."},
+{q:"Apakah pilihan snek yang lebih berkhasiat?",a:[["🍌","Pisang"],["🍬","Gula-gula"],["🍟","Kentang goreng setiap kali"],["🥤","Minuman manis"]],correct:0,why:"Pisang ialah pilihan snek yang membekalkan tenaga, serat dan nutrien."}
+];
+let index=0,score=0,correctCount=0,answered=false,recognition=null,listening=false;
+const $=id=>document.getElementById(id);
+const SpeechRecognition=window.SpeechRecognition||window.webkitSpeechRecognition;
+function speak(text){
+ if(!("speechSynthesis" in window)){setStatus("Pelayar ini tidak menyokong Text-to-Speech.");return;}
+ window.speechSynthesis.cancel();
+ const utterance=new SpeechSynthesisUtterance(text);utterance.lang="ms-MY";utterance.rate=.88;utterance.pitch=1.05;
+ const voices=window.speechSynthesis.getVoices();const voice=voices.find(v=>v.lang.toLowerCase().startsWith("ms"))||voices.find(v=>v.lang.toLowerCase().startsWith("id"));
+ if(voice)utterance.voice=voice;
+ window.speechSynthesis.speak(utterance);
+}
+function setStatus(text){$("speechStatus").textContent="Status mikrofon: "+text;}
+function show(id,on){$(id).classList.toggle("hidden",!on);}
+function updateStats(){$("score").textContent=score;$("counter").textContent=`${Math.min(index+1,10)} / 10`;$("correctCount").textContent=correctCount;}
+function startGame(){stopListening();if("speechSynthesis"in window)window.speechSynthesis.cancel();index=0;score=0;correctCount=0;show("startScreen",false);show("resultScreen",false);show("quizScreen",true);renderQuestion();}
+function renderQuestion(){
+ answered=false;stopListening();const item=questions[index];
+ $("questionTag").textContent=`MISI ${index+1} DARIPADA 10`;$("questionText").textContent=item.q;$("answers").innerHTML="";
+ $("feedback").textContent="";$("feedback").className="feedback";$("nextBtn").classList.add("hidden");
+ $("heard").textContent="Jawapan yang didengar akan muncul di sini.";setStatus("belum digunakan.");
+ item.a.forEach((answer,i)=>{const btn=document.createElement("button");btn.className="answer";btn.innerHTML=`<span class="letter">${String.fromCharCode(65+i)}</span><span class="emoji">${answer[0]}</span><span>${answer[1]}</span>`;btn.addEventListener("click",()=>chooseAnswer(i,"tap"));$("answers").appendChild(btn);});
+ $("progress").style.width=`${index/10*100}%`;updateStats();
+}
+function chooseAnswer(choice,source){
+ if(answered)return;answered=true;stopListening();const item=questions[index];const buttons=[...$("answers").querySelectorAll("button")];
+ buttons.forEach((b,i)=>{b.disabled=true;if(i===item.correct)b.classList.add("correct");});
+ const feedback=$("feedback");
+ if(choice===item.correct){score+=10;correctCount++;feedback.textContent="🎉 Betul! "+item.why;feedback.classList.add("good");speak("Betul! "+item.why);}
+ else{buttons[choice].classList.add("wrong");feedback.textContent="💡 Belum tepat. Jawapan yang betul ialah "+item.a[item.correct][1]+". "+item.why;feedback.classList.add("bad");speak("Belum tepat. Jawapan yang betul ialah "+item.a[item.correct][1]+". "+item.why);}
+ $("score").textContent=score;$("correctCount").textContent=correctCount;$("progress").style.width=`${(index+1)/10*100}%`;
+ $("nextBtn").textContent=index===9?"Lihat Keputusan 🏆":"Soalan Seterusnya ➜";$("nextBtn").classList.remove("hidden");
+}
+function normalize(s){return s.toLocaleLowerCase("ms-MY").normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^\p{L}\p{N}\s]/gu," ").replace(/\s+/g," ").trim();}
+function detectAnswer(transcript){
+ const heard=normalize(transcript),item=questions[index];
+ // Prefer exact option phrase, then match a distinctive word contained in the spoken phrase.
+ let matches=[];
+ item.a.forEach((a,i)=>{const option=normalize(a[1]);if(heard===option||heard.includes(option))matches.push(i);});
+ if(matches.length===1)return matches[0];
+ const aliases=[
+  ["air kosong","air"],
+  ["ayam","daging ayam"],
+  ["epal","buah epal"],
+  ["untuk mendapatkan serat vitamin dan mineral","serat vitamin mineral"],
+  ["roti telur dan buah","roti telur buah"],
+  ["membasuh tangan dengan sabun","basuh tangan"],
+  ["sederhana dan tidak berlebihan","sederhana"],
+  ["berbasikal atau bermain di luar","berbasikal"],
+  ["menggabungkan pelbagai kumpulan makanan mengikut keperluan","menu seimbang"],
+  ["pisang","buah pisang"]
+ ];
+ const correctText=normalize(item.a[item.correct][1]);
+ const correctWords=correctText.split(" ").filter(w=>w.length>3);
+ if(correctWords.some(w=>heard===w)&&correctWords.filter(w=>heard.includes(w)).length===1)return item.correct;
+ // Match only when a single option has a sufficiently distinctive word in the recognized phrase.
+ const candidates=[];
+ item.a.forEach((a,i)=>{const words=normalize(a[1]).split(" ").filter(w=>w.length>=5);if(words.some(w=>heard.includes(w)))candidates.push(i);});
+ if(candidates.length===1)return candidates[0];
+ // A few common spoken variants for the correct answers.
+ const variants=[
+  ["air kosong","air mineral","air putih"],
+  ["ayam","daging ayam"],
+  ["epal","buah epal"],
+  ["serat","vitamin","mineral"],
+  ["roti","telur","buah"],
+  ["membasuh tangan","basuh tangan","cuci tangan"],
+  ["sederhana","tidak berlebihan"],
+  ["berbasikal","bermain di luar","aktiviti fizikal"],
+  ["pelbagai kumpulan makanan","makanan seimbang"],
+  ["pisang","buah pisang"]
+ ];
+ const found=variants[index].filter(v=>heard.includes(normalize(v)));
+ if(found.length)return item.correct;
+ return -1;
+}
+function startListening(){
+ if(answered)return;
+ if(!SpeechRecognition){$("feedback").textContent="Maaf, pengecaman suara tidak disokong oleh pelayar ini. Sila gunakan Google Chrome atau Microsoft Edge, atau pilih jawapan melalui butang."; $("feedback").className="feedback info";setStatus("tidak disokong oleh pelayar.");return;}
+ if(listening){stopListening();return;}
+ try{
+  recognition=new SpeechRecognition();recognition.lang="ms-MY";recognition.interimResults=false;recognition.maxAlternatives=3;recognition.continuous=false;
+  recognition.onstart=()=>{listening=true;$("micBtn").classList.add("listening");$("micBtn").textContent="🔴 Sedang Mendengar… (tekan untuk henti)";setStatus("sedang mendengar. Sebut jawapan sekarang.");$("feedback").textContent="";$("feedback").className="feedback";};
+  recognition.onerror=e=>{listening=false;resetMic();let msg=e.error==="not-allowed"?"Akses mikrofon disekat. Benarkan mikrofon dalam tetapan pelayar.":e.error==="no-speech"?"Tiada suara dikesan. Cuba sebut dengan lebih jelas.":"Suara tidak dapat diproses. Cuba lagi atau pilih jawapan melalui butang.";setStatus(msg);$("feedback").textContent=msg;$("feedback").className="feedback info";};
+  recognition.onresult=e=>{
+   const transcripts=[];for(let i=0;i<e.results[0].length;i++)transcripts.push(e.results[0][i].transcript);
+   const transcript=transcripts[0]||"";$("heard").textContent="Anda menyebut: “"+transcript+"”";
+   let choice=-1;for(const t of transcripts){choice=detectAnswer(t);if(choice!==-1)break;}
+   if(choice!==-1){setStatus("jawapan dikesan.");chooseAnswer(choice,"voice");}
+   else{$("feedback").textContent="Kami mendengar sebutan anda, tetapi belum dapat memadankannya dengan pilihan. Sila sebut teks pilihan dengan jelas atau tekan salah satu butang jawapan."; $("feedback").className="feedback info";setStatus("sebutan diterima, jawapan belum dikenal pasti.");}
+  };
+  recognition.onend=()=>{listening=false;resetMic();};
+  recognition.start();
+ }catch(err){setStatus("mikrofon tidak dapat dimulakan. Cuba lagi.");resetMic();}
+}
+function resetMic(){$("micBtn").classList.remove("listening");$("micBtn").textContent="🎤 Jawab dengan Suara";}
+function stopListening(){if(recognition&&listening){try{recognition.stop();}catch(e){}}listening=false;resetMic();}
+function nextQuestion(){if(index<9){index++;renderQuestion();}else finishGame();}
+function finishGame(){
+ stopListening();show("quizScreen",false);show("resultScreen",true);$("finalScore").textContent=score;
+ let emoji,title,message,stars;
+ if(score===100){emoji="🏆";title="Hebat! Juara Menu Sihat!";stars="⭐⭐⭐⭐⭐";message="Sempurna! Anda sangat mengenali pilihan makanan dan amalan hidup sihat. Teruskan amalan baik ini!";}
+ else if(score>=70){emoji="🌟";title="Syabas, Wira Sihat!";stars="⭐⭐⭐⭐";message="Bagus! Anda sudah tahu banyak perkara tentang pemakanan sihat. Cuba lagi untuk mencapai 100 mata!";}
+ else if(score>=40){emoji="💪";title="Teruskan Usaha!";stars="⭐⭐⭐";message="Anda sedang belajar menjadi wira sihat. Ingat maklum balas tadi dan cuba lagi!";}
+ else{emoji="🌱";title="Misi Latihan Selesai!";stars="⭐⭐";message="Tidak mengapa! Setiap cubaan membantu kita belajar. Cuba main semula dan kenali pilihan yang lebih sihat.";}
+ $("resultEmoji").textContent=emoji;$("resultTitle").textContent=title;$("resultStars").textContent=stars;$("resultMessage").textContent=message;$("counter").textContent="10 / 10";$("progress").style.width="100%";
+}
+$("startBtn").addEventListener("click",startGame);$("nextBtn").addEventListener("click",nextQuestion);$("restartBtn").addEventListener("click",startGame);
+$("speakQuestion").addEventListener("click",()=>speak(questions[index].q));
+$("speakOptions").addEventListener("click",()=>speak("Pilihan jawapan. "+questions[index].a.map((a,i)=>String.fromCharCode(65+i)+". "+a[1]).join(". ")));
+$("micBtn").addEventListener("click",startListening);$("readResultBtn").addEventListener("click",()=>speak($("resultTitle").textContent+". Skor anda "+score+" daripada 100 mata. "+$("resultMessage").textContent));
+if(!SpeechRecognition){$("micBtn").title="Pengecaman suara tidak disokong oleh pelayar ini; gunakan butang pilihan jawapan.";}
+</script>
+</body>
+</html>
